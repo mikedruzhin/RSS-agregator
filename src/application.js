@@ -1,56 +1,55 @@
 import * as yup from 'yup';
-import onChange from 'on-change';
-import view from './view'
+import i18next from 'i18next';
+import resources from './locales/index';
+import watch from './view'
 
-export default () => {
+export default async () => {
   const state = {
     form: {
       inputValue: '',
       valid: true,
-      alarm: '',
+      //error: '',
     },
-    feeds: []
+    feeds: ['https://lorem-rss.hexlet.app/feed']
   };
 
-  const input = document.getElementById('url-input');
-  const alarm = document.querySelector('.feedback');
+  yup.setLocale({
+    mixed: {
+      notOneOf: 'RSS уже существует',
+    },
+    string: {
+      url: 'Ссылка должна быть валидным URL',
+    },
+  });
 
-  const submit = document.querySelector('[aria-label="add"]');
+  const i18n = i18next.createInstance();
+  await i18n.init({
+    lng: 'ru',
+    debug: false,
+    resources,
+  });
+
+  const input = document.getElementById('url-input');
   const form = document.querySelector('.rss-form');
 
-  const watchedState = onChange(state, view)/*function (path, current, previous) {
-    console.log(this);
-    alarm.textContent = state.form.alarm;
-    if (current === true) {
-      input.value = '';
-      input.focus();
-      input.classList.remove('is-invalid');
-    } else {
-      input.classList.add('is-invalid');
-    }
-  })*/
+  const watchedState = watch(i18n, state);
 
-  const schema = yup.string().url();
+  const schema = yup.string().notOneOf(state.feeds).url();
+
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     state.form.inputValue = input.value;
-    
-    schema.isValid(state.form.inputValue).then((data) => {
-      if (!data) {
-        watchedState.form.alarm = 'Ссылка должна быть валидным URL';
-        state.form.alarm = 'Ссылка должна быть валидным URL';
-        state.form.valid = false;
-      } else if (state.feeds.includes(state.form.inputValue)) {
-        watchedState.form.alarm = 'RSS уже существует';
-        state.form.alarm = 'RSS уже существует';
-        state.form.valid = false;
-      } else {
-        watchedState.form.alarm = '';
-        state.form.alarm = '';
-        state.feeds.push(state.form.inputValue);
-        state.form.valid = true;
-        console.log('ok');
-      }
+    console.log(state.feeds);
+    schema.validate(state.form.inputValue)
+    .then(() => {
+      watchedState.form.alarm = '';
+      state.feeds.push(state.form.inputValue);
+      console.log(state.feeds);
+      state.form.valid = true;
+    }).catch((e) => {
+      console.log(e.errors[0])
+      watchedState.form.alarm = e.errors[0]
+      state.form.valid = false;
     })
   })
 }
