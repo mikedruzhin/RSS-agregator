@@ -8,9 +8,9 @@ export default async () => {
     form: {
       inputValue: '',
       valid: true,
-      //error: '',
+      alarm: '',
     },
-    feeds: ['https://lorem-rss.hexlet.app/feed']
+    links: []
   };
 
   yup.setLocale({
@@ -34,20 +34,20 @@ export default async () => {
 
   const watchedState = watch(i18n, state);
 
-  const schema = yup.string().notOneOf(state.feeds).url();
+  const makeValidateScheme = (links) => {
+    const schema = yup.string().notOneOf(links).url();
+    return schema;
+  }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     state.form.inputValue = input.value;
-    console.log(state.feeds);
-    schema.validate(state.form.inputValue)
+    makeValidateScheme(state.links).validate(state.form.inputValue)
     .then(() => {
       watchedState.form.alarm = '';
-      state.feeds.push(state.form.inputValue);
-      console.log(state.feeds);
+      state.links.push(state.form.inputValue);
       state.form.valid = true;
     }).catch((e) => {
-      console.log(e.errors[0])
       watchedState.form.alarm = e.errors[0]
       state.form.valid = false;
     })
