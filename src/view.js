@@ -12,21 +12,19 @@ export default function (i18n, state) {
     const list = document.createElement('ul');
     list.classList.add('list-group', 'border-0', 'rounded-0');
 
-    data.forEach(({ title, description }) => {
-      const el = document.createElement('li');
-      const p = document.createElement('p');
-      const head = document.createElement('h3');
+    const el = document.createElement('li');
+    const p = document.createElement('p');
+    const head = document.createElement('h3');
 
-      el.classList.add('list-group-item', 'border-0', 'border-end-0');
-      p.classList.add('m-0', 'small', 'text-black-50');
-      head.classList.add('h6', 'm-0');
+    el.classList.add('list-group-item', 'border-0', 'border-end-0');
+    p.classList.add('m-0', 'small', 'text-black-50');
+    head.classList.add('h6', 'm-0');
 
-      head.textContent = title;
-      p.textContent = description;
+    head.textContent = data.title;
+    p.textContent = data.description;
 
-      el.append(head, p);
-      list.append(el);
-    })
+    el.append(head, p);
+    list.append(el);
     return list;
   }
 

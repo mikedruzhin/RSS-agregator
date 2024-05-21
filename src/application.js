@@ -1,9 +1,10 @@
 import * as yup from 'yup';
 import i18next from 'i18next';
 import resources from './locales/index';
-import { uniqueId } from 'lodash';
+
 import watch from './view'
 import axios from 'axios';
+import parser from './parser';
 
 export default async () => {
   const state = {
@@ -12,7 +13,7 @@ export default async () => {
       valid: true,
       alarm: null,
     },
-    feeds: [],
+    feeds: {},
     posts: [],
     links: [],
     request: null,
@@ -47,24 +48,10 @@ export default async () => {
   const getData = () => {
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=https://lorem-rss.herokuapp.com/feed`)
       .then(response => {
-        state.request = response.status;
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(response.data.contents, "text/xml");
-        const root = doc.querySelector('channel');
-
-        const feedTitle = root.querySelector('title').textContent;
-        const feedDescription = root.querySelector('description').textContent;
-        state.feeds = [{ title: feedTitle, description: feedDescription }]; 
-
-        const items = Array.from(root.querySelectorAll('item'));
-        const newPosts = items.map((item) => {
-          const title = item.querySelector('title').textContent;
-          const description = item.querySelector('description').textContent;
-          return { id: uniqueId(), title, description };
-        })
-        state.posts = newPosts;
+        console.log(response.status);
+        parser(response.data.contents, state);
+        console.log(state);
         return response.status;
-
       }).then((requestStatus) => requestStatus)
       .catch(() => {
         watchedState.form.alarm = i18n.t('networkError');
