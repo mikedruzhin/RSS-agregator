@@ -49,8 +49,10 @@ export default async () => {
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=https://lorem-rss.herokuapp.com/feed`)
       .then(response => {
         console.log(response.status);
-        parser(response.data.contents, state);
-        console.log(state);
+        const parsedData = parser(response.data.contents);
+        
+        state.feeds = {...state.feeds, ...parsedData.feeds };
+        state.posts = [...state.posts, ...parsedData.posts];
         return response.status;
       }).then((requestStatus) => requestStatus)
       .catch(() => {
