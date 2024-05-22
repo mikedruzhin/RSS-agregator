@@ -1,9 +1,9 @@
 import * as yup from 'yup';
 import i18next from 'i18next';
 import resources from './locales/index';
-
+import _ from 'lodash';
 import watch from './view'
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import parser from './parser';
 
 export default async () => {
@@ -46,18 +46,22 @@ export default async () => {
   }
 
   const getData = () => {
+    let lastSetTimeoutId = null;
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=https://lorem-rss.herokuapp.com/feed`)
-      .then(response => {
-        console.log(response.status);
-        const parsedData = parser(response.data.contents);
-        
-        state.feeds = {...state.feeds, ...parsedData.feeds };
-        state.posts = [...state.posts, ...parsedData.posts];
-        return response.status;
-      }).then((requestStatus) => requestStatus)
-      .catch(() => {
-        watchedState.form.alarm = i18n.t('networkError');
-      })
+    .then(response => {
+      console.log(response.status);
+      const parsedData = parser(response.data.contents);
+      state.feeds = parsedData.feeds;
+      state.posts = parsedData.posts;
+      console.log(state.posts);
+      return response.status;
+    })
+    .then((requestStatus) => {
+      lastSetTimeoutId = window.setTimeout(getData, 10000)
+      return requestStatus;
+    }).catch(() => {
+      watchedState.form.alarm = i18n.t('networkError');
+    })
   }
 
   form.addEventListener('submit', (e) => {
@@ -66,15 +70,16 @@ export default async () => {
     makeValidateScheme(state.links).validate(state.form.inputValue)
     .then(() => {
       getData().then((ok) => {
-        if (ok === 200) {
+        if (ok !== null) {
+          console.log(state.posts);
           watchedState.form.alarm = '';
           watchedState.form.alarm = null;
           state.links.push(state.form.inputValue);
           state.form.valid = true;
         }
-      });
-      
-    }).catch((e) => {
+      })
+    })
+    .catch((e) => {
       watchedState.form.alarm = e.errors[0];
       state.form.valid = false;
     })
