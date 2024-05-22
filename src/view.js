@@ -4,7 +4,7 @@ const input = document.getElementById('url-input');
 const alarm = document.querySelector('.feedback');
 const feedsEl = document.querySelector('.feeds');
 const postsEl = document.querySelector('.posts');
-//<li class="list-group-item border-0 border-end-0"><h3 class="h6 m-0">Lorem ipsum feed for an interval of 1 minutes with 10 item(s)</h3><p class="m-0 small text-black-50">This is a constantly updating lorem ipsum feed</p></li></ul>
+const feedback = document.querySelector('.feedback');
 
 export default function (i18n, state) {
   
@@ -76,27 +76,35 @@ export default function (i18n, state) {
   }
   
   const watchedState = onChange(state, (path, current) => {
-    //console.log(current);
-    alarm.textContent = current;
-    switch (current) {
-      case '':  
-        input.value = '';
-        input.focus();
-        input.classList.remove('is-invalid');
-        
+    console.log(path);
+    switch (path) {
+      case 'form.alarm':
+        input.classList.add('is-invalid');
+        feedback.classList.remove('text-success');
+        feedback.classList.add('text-danger');
+        alarm.textContent = current;
+        break;
+      case 'posts': 
+        feedsEl.textContent = '';
+        postsEl.textContent = '';
         feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
         postsEl.append(renderBlock('Посты'), renderPosts(state.posts));
-        
         break;
-        
-      case i18n.t('shoudBeValid'):  
-        input.classList.add('is-invalid');
-        break;
-      case i18n.t('alreadyExists'):
-        input.classList.add('is-invalid');
-        break;
-      case i18n.t('networkError'):
+      case 'loaded':
+        alarm.textContent = i18n.t('success');
+        input.value = '';
+        input.focus();
+        feedback.classList.remove('text-danger');
+        feedback.classList.add('text-success');
         input.classList.remove('is-invalid');
+        feedsEl.textContent = '';
+        postsEl.textContent = '';
+        feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
+        postsEl.append(renderBlock('Посты'), renderPosts(state.posts));
+        break;
+      case 'networkError':
+        input.classList.remove('is-invalid');  
+        alarm.textContent = current;
         break;
     }
   });

@@ -16,7 +16,8 @@ export default async () => {
     feeds: {},
     posts: [],
     links: [],
-    request: null,
+    networkError: null,
+    loaded: null,
   };
 
   yup.setLocale({
@@ -46,30 +47,47 @@ export default async () => {
   }
 
   const getData = () => {
-    let lastSetTimeoutId = null;
+    //let lastSetTimeoutId = null;
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=https://lorem-rss.herokuapp.com/feed`)
     .then(response => {
       console.log(response.status);
       const parsedData = parser(response.data.contents);
+      watchedState.feeds = parsedData.feeds;
       state.feeds = parsedData.feeds;
+      watchedState.posts = parsedData.posts;
       state.posts = parsedData.posts;
       console.log(state.posts);
       return response.status;
     })
     .then((requestStatus) => {
-      lastSetTimeoutId = window.setTimeout(getData, 10000)
+      //lastSetTimeoutId = window.setTimeout(getData, 10000)
       return requestStatus;
     }).catch(() => {
-      watchedState.form.alarm = i18n.t('networkError');
+      watchedState.networkError = i18n.t('networkError');
     })
+  }
+
+  const updateData = (data, interval = 3000) => {
+    data();
+    setInterval(data, interval);
   }
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
     state.form.inputValue = input.value;
+    
     makeValidateScheme(state.links).validate(state.form.inputValue)
     .then(() => {
-      getData().then((ok) => {
+      updateData(getData);
+    })
+    .then(() => {
+      watchedState.loaded = true;
+      //watchedState.form.alarm = null;
+      state.form.alarm = null;
+      state.links.push(state.form.inputValue);
+      state.form.valid = true;
+      
+      /*getData().then((ok) => {
         if (ok !== null) {
           console.log(state.posts);
           watchedState.form.alarm = '';
@@ -77,10 +95,11 @@ export default async () => {
           state.links.push(state.form.inputValue);
           state.form.valid = true;
         }
-      })
+      })*/
     })
     .catch((e) => {
       watchedState.form.alarm = e.errors[0];
+      state.form.alarm = e.errors[0];
       state.form.valid = false;
     })
   })
