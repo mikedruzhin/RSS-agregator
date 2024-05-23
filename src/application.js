@@ -47,7 +47,6 @@ export default async () => {
   }
 
   const getData = () => {
-    //let lastSetTimeoutId = null;
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=https://lorem-rss.herokuapp.com/feed`)
     .then(response => {
       console.log(response.status);
@@ -60,7 +59,6 @@ export default async () => {
       return response.status;
     })
     .then((requestStatus) => {
-      //lastSetTimeoutId = window.setTimeout(getData, 10000)
       return requestStatus;
     }).catch(() => {
       watchedState.networkError = i18n.t('networkError');
@@ -86,16 +84,6 @@ export default async () => {
       state.form.alarm = null;
       state.links.push(state.form.inputValue);
       state.form.valid = true;
-      
-      /*getData().then((ok) => {
-        if (ok !== null) {
-          console.log(state.posts);
-          watchedState.form.alarm = '';
-          watchedState.form.alarm = null;
-          state.links.push(state.form.inputValue);
-          state.form.valid = true;
-        }
-      })*/
     })
     .catch((e) => {
       watchedState.form.alarm = e.errors[0];
@@ -103,4 +91,5 @@ export default async () => {
       state.form.valid = false;
     })
   })
+  
 }
