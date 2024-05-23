@@ -67,9 +67,9 @@ export default async () => {
     })
   }
 
-  const updateData = (data, interval = 3000) => {
-    data();
-    setInterval(data, interval);
+  const updateData = (interval = 5000) => {
+    getData();
+    setTimeout(updateData, interval);
   }
 
   form.addEventListener('submit', (e) => {
@@ -78,7 +78,7 @@ export default async () => {
     
     makeValidateScheme(state.links).validate(state.form.inputValue)
     .then(() => {
-      updateData(getData);
+      updateData();
     })
     .then(() => {
       watchedState.loaded = true;
