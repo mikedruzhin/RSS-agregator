@@ -12,7 +12,7 @@ export default (data) => {
   const newPosts = items.map((item) => {
     const title = item.querySelector('title').textContent;
     const description = item.querySelector('description').textContent;
-    return { id: uniqueId(), title, description };
+    return { /*id: uniqueId(), */title, description };
   })
 
   return { feeds: { title: feedTitle, description: feedDescription }, posts: newPosts  };

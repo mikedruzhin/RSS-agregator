@@ -28,23 +28,27 @@ export default function (i18n, state) {
     return list;
   }
 
-  const renderPosts = (data) => {
+  const renderPosts = (data, openedLinks) => {
+    console.log(openedLinks)
     const list = document.createElement('ul');
     list.classList.add('list-group', 'border-0', 'rounded-0');
     data.forEach(({ id, title, description }) => {
+      //console.log(id)
+      //console.log(openedLinks)
       const el = document.createElement('li');
       const link = document.createElement('a');
       const button = document.createElement('button');
 
       el.classList.add('list-group-item', 'd-flex', 'justify-content-between', 'align-items-start', 'border-0', 'border-end-0');
-      link.classList.add('fw-bold');
+      link.classList.add(openedLinks.includes(id) ? 'fw-normal' : 'fw-bold');
+      button.setAttribute('type', 'button');
       button.classList.add('btn', 'btn-outline-primary', 'btn-sm');
 
       link.setAttribute('data-id', id);
       link.setAttribute('target', '_blank');
       link.setAttribute('rel', 'noopener noreferrer');
 
-      button.setAttribute('type', 'button');
+      
       button.setAttribute('data-id', id);
       button.setAttribute('data-bs-toggle', 'modal');
       button.setAttribute('data-bs-target', '#modal');
@@ -75,39 +79,12 @@ export default function (i18n, state) {
     card.append(cardBody);
     return card;
   }
-  
-  const renderModal = () => {
-    const modal = document.createElement('div');
-    const dialog = document.createElement('div');
-    const content = document.createElement('div');
-    const header = document.createElement('div');
-    const body = document.createElement('div');
-    const footer = document.createElement('div');
-
-    dialog.classList.add('modal-dialog');
-    content.classList.add('modal-content');
-    header.classList.add('modal-header');
-    body.classList.add('modal-body', 'text-break');
-    footer.classList.add('modal-footer');
-
-    modal.classList.add('modal', 'fade', 'show');
-    modal.setAttribute('id', 'modal');
-    modal.setAttribute('tabindex', '-1');
-    modal.setAttribute('arialabelledby', 'modal');
-    modal.setAttribute('style', 'display: block');
-    modal.setAttribute('aria-modal', 'true');
-    modal.setAttribute('role', 'dialog');
-
-    content.append(header, body, footer);
-    dialog.append(content);
-    modal.append(dialog);
-    return modal;
-  }
   const watchedState = onChange(state, (path, current) => {
     
     console.log(path);
     switch (path) {
       case 'form.alarm':
+        console.log(state.form.alarm)
         input.classList.add('is-invalid');
         feedback.classList.remove('text-success');
         feedback.classList.add('text-danger');
@@ -117,9 +94,9 @@ export default function (i18n, state) {
         feedsEl.textContent = '';
         postsEl.textContent = '';
         feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
-        postsEl.append(renderBlock('Посты'), renderPosts(state.posts));
+        postsEl.append(renderBlock('Посты'), renderPosts(state.posts, state.opened));
         break;
-      case 'loaded':
+      case 'loaded': 
         alarm.textContent = i18n.t('success');
         input.value = '';
         input.focus();
@@ -129,25 +106,28 @@ export default function (i18n, state) {
         feedsEl.textContent = '';
         postsEl.textContent = '';
         feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
-        postsEl.append(renderBlock('Посты'), renderPosts(state.posts));
+        postsEl.append(renderBlock('Посты'), renderPosts(state.posts, state.opened));
+        
         break;
+      case 'currentPost': 
+        //console.log(state.currentPost)
+        
+        const modalTitle = document.querySelector('.modal-title');
+        const modalDescription = document.querySelector('.modal-body');
+        const [{ title, description }] = state.currentPost;
+        modalTitle.textContent = title;
+        modalDescription.textContent = description;
+        state.opened.map((item) => {
+          const ref = document.querySelector(`a[data-id='${item}']`)
+          ref.classList.remove('fw-bold');
+          ref.classList.add('fw-normal');
+
+        })
       case 'networkError':
         input.classList.remove('is-invalid');  
         alarm.textContent = current;
         break;
     }
-    const buttons = document.querySelectorAll('button.btn-outline-primary');
-    //console.log(buttons)
-    const res = Array.from(buttons);
-
-    res.forEach((item) => {
-      console.log(item)
-      item.addEventListener('click', () => {
-        document.body.append(renderModal());
-        //renderModal();
-      })
-    })
-      
   });
 
   return watchedState;
