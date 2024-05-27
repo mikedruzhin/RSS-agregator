@@ -7,6 +7,7 @@ export default {
     alreadyExists: 'RSS уже существует',
     success: 'RSS успешно загружен',
     networkError: 'Ошибка сети',
+    nonExistsValidRss: 'Ресурс не содержит валидный RSS',
 
   },
 };

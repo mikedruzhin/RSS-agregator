@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import onChange from 'on-change';
 
 const input = document.getElementById('url-input');
@@ -5,9 +6,10 @@ const alarm = document.querySelector('.feedback');
 const feedsEl = document.querySelector('.feeds');
 const postsEl = document.querySelector('.posts');
 const feedback = document.querySelector('.feedback');
+const modalTitle = document.querySelector('.modal-title');
+const modalDescription = document.querySelector('.modal-body');
 
 export default function (i18n, state) {
-  
   const renderFeeds = (data) => {
     const list = document.createElement('ul');
     list.classList.add('list-group', 'border-0', 'rounded-0');
@@ -26,15 +28,12 @@ export default function (i18n, state) {
     el.append(head, p);
     list.append(el);
     return list;
-  }
+  };
 
   const renderPosts = (data, openedLinks) => {
-    console.log(openedLinks)
     const list = document.createElement('ul');
     list.classList.add('list-group', 'border-0', 'rounded-0');
-    data.forEach(({ id, title, description }) => {
-      //console.log(id)
-      //console.log(openedLinks)
+    data.forEach(({ id, title }) => {
       const el = document.createElement('li');
       const link = document.createElement('a');
       const button = document.createElement('button');
@@ -48,7 +47,6 @@ export default function (i18n, state) {
       link.setAttribute('target', '_blank');
       link.setAttribute('rel', 'noopener noreferrer');
 
-      
       button.setAttribute('data-id', id);
       button.setAttribute('data-bs-toggle', 'modal');
       button.setAttribute('data-bs-target', '#modal');
@@ -58,10 +56,9 @@ export default function (i18n, state) {
 
       el.append(link, button);
       list.append(el);
-
-    })
+    });
     return list;
-  }
+  };
 
   const renderBlock = (title) => {
     const card = document.createElement('div');
@@ -71,32 +68,29 @@ export default function (i18n, state) {
     card.classList.add('card', 'border-0');
     cardBody.classList.add('card-body');
     head.classList.add('card-title', 'h4');
-    
-
     head.textContent = title;
 
     cardBody.append(head);
     card.append(cardBody);
     return card;
-  }
+  };
   const watchedState = onChange(state, (path, current) => {
-    
-    console.log(path);
     switch (path) {
       case 'form.alarm':
-        console.log(state.form.alarm)
-        input.classList.add('is-invalid');
+        if (current === i18n.t('networkError')) {
+          input.classList.remove('is-invalid');
+        } else {
+          input.classList.add('is-invalid');
+        }
         feedback.classList.remove('text-success');
         feedback.classList.add('text-danger');
         alarm.textContent = current;
         break;
-      case 'posts': 
-        feedsEl.textContent = '';
+      case 'posts':
         postsEl.textContent = '';
-        feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
         postsEl.append(renderBlock('Посты'), renderPosts(state.posts, state.opened));
         break;
-      case 'loaded': 
+      case 'loaded':
         alarm.textContent = i18n.t('success');
         input.value = '';
         input.focus();
@@ -107,26 +101,19 @@ export default function (i18n, state) {
         postsEl.textContent = '';
         feedsEl.append(renderBlock('Фиды'), renderFeeds(state.feeds));
         postsEl.append(renderBlock('Посты'), renderPosts(state.posts, state.opened));
-        
         break;
-      case 'currentPost': 
-        //console.log(state.currentPost)
-        
-        const modalTitle = document.querySelector('.modal-title');
-        const modalDescription = document.querySelector('.modal-body');
-        const [{ title, description }] = state.currentPost;
+      case 'openModal':
+        const [{ title, description }] = current;
         modalTitle.textContent = title;
         modalDescription.textContent = description;
         state.opened.map((item) => {
-          const ref = document.querySelector(`a[data-id='${item}']`)
+          const ref = document.querySelector(`a[data-id='${item}']`);
           ref.classList.remove('fw-bold');
           ref.classList.add('fw-normal');
-
-        })
-      case 'networkError':
-        input.classList.remove('is-invalid');  
-        alarm.textContent = current;
+        });
         break;
+      default:
+        throw new Error('Unexpected error');
     }
   });
 

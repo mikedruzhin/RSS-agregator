@@ -8,6 +8,6 @@ parserOptions:
 rules: {
   import/no-extraneous-dependencies: 
     error,
-    devDependencies: true
+    devDependencies: 0,
 }
     
