@@ -49,9 +49,6 @@ export default async () => {
   const getData = (site) => {
     return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${site}`)
       .then(response => {
-        if (response.data.status.http_code === 200) {
-          state.links.push(site);
-        }
         const parsedData = parser(response.data.contents);
         const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
         state.posts = [...initial, ...state.posts]
@@ -85,6 +82,7 @@ export default async () => {
       .then(() => {
         getData(input.value).then(() => {
           state.form.alarm = i18n.t('success');
+          state.links.push(input.value);
           watchedState.loaded = true;
           watchedState.loaded = false;
         }).catch((error) => {
