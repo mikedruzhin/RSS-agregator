@@ -55,6 +55,7 @@ export default async () => {
         const parsedData = parser(response.data.contents);
         const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
         state.posts = [...initial, ...state.posts]
+        state.feeds = [...parsedData.feeds, ...state.feeds]
         return { response: response.status };
       })
   }
