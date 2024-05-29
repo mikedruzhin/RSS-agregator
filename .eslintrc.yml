@@ -1,4 +1,5 @@
 env:
+  browser: true
   es2021: true
   node: true
 extends: airbnb-base
@@ -8,6 +9,6 @@ parserOptions:
 rules: {
   import/no-extraneous-dependencies: 
     error,
-    devDependencies: 0,
+    devDependencies: 1,
 }
     

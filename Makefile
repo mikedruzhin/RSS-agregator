@@ -5,7 +5,7 @@ publish: # выполняет отладку публикации пакета
 	npm publish --dry-run
 lint: # запускает eslint
 	npx eslint .
-develop:
+serve:
 	npx webpack serve
 build:
 	NODE_ENV=production npx webpack
