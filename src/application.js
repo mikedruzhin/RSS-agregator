@@ -72,14 +72,15 @@ export default async () => {
 
   const getUpdateData = (interval = 5000) => {
     setTimeout(() => {
-      const newPromises = state.feeds.map((feed) => axios.get(createUrl(feed.link)).then((response) => {
-        const newPosts = parser(response.data.contents).posts;
-        const oldTitles = new Set(state.posts.map((post) => post.title));
-        const filteredPosts = newPosts.filter(({ title }) => !oldTitles.has(title));
-        const newPostsWithId = filteredPosts.map((item) => ({ id: _.uniqueId(), ...item }));
-        const updatedPosts = [...newPostsWithId, ...state.posts];
-        watchedState.posts = updatedPosts;
-      }).catch((error) => errorHandler(error)));
+      const newPromises = state.feeds.map((feed) => axios.get(createUrl(feed.link))
+        .then((response) => {
+          const newPosts = parser(response.data.contents).posts;
+          const oldTitles = new Set(state.posts.map((post) => post.title));
+          const filteredPosts = newPosts.filter(({ title }) => !oldTitles.has(title));
+          const newPostsWithId = filteredPosts.map((item) => ({ id: _.uniqueId(), ...item }));
+          const updatedPosts = [...newPostsWithId, ...state.posts];
+          watchedState.posts = updatedPosts;
+        }).catch((error) => errorHandler(error)));
 
       Promise.all(newPromises)
         .finally(() => getUpdateData());
