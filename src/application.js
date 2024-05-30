@@ -10,13 +10,13 @@ import parser from './parser';
 export default async () => {
   const state = {
     form: {
-      alarm: null,
+      error: null,
+      status: 'feeling',
     },
     feeds: [],
     posts: [],
     currentPost: [],
     links: [],
-    loaded: null,
     opened: [],
   };
 
@@ -46,32 +46,47 @@ export default async () => {
     const schema = yup.string().notOneOf(links).url();
     return schema;
   };
-  const getData = (site) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${site}`)
+
+  const createUrl = (rssFeed) => {
+    const proxy = 'https://allorigins.hexlet.app/get?disableCache=true&url=';
+    const proxiedUrl = `${proxy}${rssFeed}`;
+    return proxiedUrl;
+  };
+
+  const errorHandler = (error) => {
+    if (error.isAxiosError) {
+      watchedState.form.error = i18n.t('networkError');
+    } else {
+      watchedState.form.error = i18n.t('nonExistsValidRss');
+    }
+  };
+
+  const getData = (site) => axios.get(createUrl(site))
     .then((response) => {
       const parsedData = parser(response.data.contents);
+      const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: site, ...feed }));
       const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
       state.posts = [...initial, ...state.posts];
-      state.feeds = [...parsedData.feeds, ...state.feeds];
+      state.feeds = [...feedsWithUrl, ...state.feeds];
       return { response: response.status };
     });
 
-  const getUpdateData = (feeds) => {
-    let newPromises = [];
+  const getUpdateData = (feeds, interval = 5000) => {
     setTimeout(() => {
-      newPromises = feeds.map((feed) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${feed}`).then((response) => {
+      const newPromises = feeds.map((feed) => axios.get(createUrl(feed.link)).then((response) => {
         const newPosts = parser(response.data.contents).posts;
-        const oldPosts = state.posts;
-        const oldTitles = new Set(oldPosts.map((post) => post.title));
+        console.log(newPosts)
+        const oldTitles = new Set(state.posts.map((post) => post.title));
         const filteredPosts = newPosts.filter(({ title }) => !oldTitles.has(title));
         const newPostsWithId = filteredPosts.map((item) => ({ id: _.uniqueId(), ...item }));
         const updatedPosts = [...newPostsWithId, ...state.posts];
         watchedState.posts = updatedPosts;
         state.posts = updatedPosts;
-      }));
+      }).catch((error) => errorHandler(error)));
 
       Promise.all(newPromises)
         .finally(() => getUpdateData(feeds));
-    }, 5000);
+    }, interval);
   };
 
   form.addEventListener('submit', (e) => {
@@ -80,23 +95,18 @@ export default async () => {
     makeValidateScheme(state.links).validate(input.value)
       .then(() => {
         getData(input.value).then(() => {
-          state.form.alarm = i18n.t('success');
+          state.form.error = i18n.t('success');
+          console.log(state.feeds);
           state.links.push(input.value);
-          watchedState.loaded = true;
-          watchedState.loaded = false;
-        }).catch((error) => {
-          if (error.isAxiosError) {
-            watchedState.form.alarm = i18n.t('networkError');
-          } else {
-            watchedState.form.alarm = i18n.t('nonExistsValidRss');
-          }
-        });
+          watchedState.status = 'loaded';
+          watchedState.status = 'feeling';
+        }).catch((error) => errorHandler(error));
       })
 
       .catch((error) => {
         const [currentError] = error.errors;
-        watchedState.form.alarm = currentError;
-        state.form.alarm = currentError;
+        watchedState.form.error = currentError;
+        state.form.error = currentError;
       });
   });
 
@@ -106,5 +116,5 @@ export default async () => {
     state.opened.push(event.target.dataset.id);
   };
   posts.addEventListener('click', action);
-  getUpdateData(state.links);
+  getUpdateData(state.feeds);
 };

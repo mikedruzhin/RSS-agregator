@@ -81,14 +81,13 @@ const markLinks = (state) => {
 
 export default (i18n, state) => {
   const input = document.getElementById('url-input');
-  const alarm = document.querySelector('.feedback');
   const feedsEl = document.querySelector('.feeds');
   const postsEl = document.querySelector('.posts');
   const feedback = document.querySelector('.feedback');
 
   const watchedState = onChange(state, (path, current) => {
     switch (path) {
-      case 'form.alarm':
+      case 'form.error':
         if (current === i18n.t('networkError')) {
           input.classList.remove('is-invalid');
         } else {
@@ -96,14 +95,14 @@ export default (i18n, state) => {
         }
         feedback.classList.remove('text-success');
         feedback.classList.add('text-danger');
-        alarm.textContent = current;
+        feedback.textContent = current;
         break;
       case 'posts':
         postsEl.textContent = '';
         postsEl.append(renderBlock(i18n.t('postsTitle')), renderPosts(state.posts, state.opened));
         break;
-      case 'loaded':
-        alarm.textContent = i18n.t('success');
+      case 'status':
+        feedback.textContent = i18n.t('success');
         input.value = '';
         input.focus();
         feedback.classList.remove('text-danger');
