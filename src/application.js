@@ -46,16 +46,15 @@ export default async () => {
     const schema = yup.string().notOneOf(links).url();
     return schema;
   };
-  const getData = (site) => {
-    return axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${site}`)
-      .then(response => {
-        const parsedData = parser(response.data.contents);
-        const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
-        state.posts = [...initial, ...state.posts]
-        state.feeds = [...parsedData.feeds, ...state.feeds]
-        return { response: response.status };
-      })
-  }
+  const getData = (site) => axios.get(`https://allorigins.hexlet.app/get?disableCache=true&url=${site}`)
+    .then((response) => {
+      const parsedData = parser(response.data.contents);
+      const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
+      state.posts = [...initial, ...state.posts];
+      state.feeds = [...parsedData.feeds, ...state.feeds];
+      return { response: response.status };
+    });
+
   const getUpdateData = (feeds) => {
     let newPromises = [];
     setTimeout(() => {

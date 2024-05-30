@@ -17,7 +17,7 @@ const renderFeeds = (data) => {
 
     el.append(head, p);
     list.append(el);
-  })
+  });
   return list;
 };
 
@@ -66,14 +66,25 @@ const renderBlock = (title) => {
   return card;
 };
 
-export default function (i18n, state) {
+const markLinks = (state) => {
+  const modalTitle = document.querySelector('.modal-title');
+  const modalDescription = document.querySelector('.modal-body');
+  const btnId = state.currentPost.getAttribute('data-id');
+  const modalData = state.posts.filter((item) => item.id === btnId);
+  const [{ title, description }] = modalData;
+  modalTitle.textContent = title;
+  modalDescription.textContent = description;
+  const ref = document.querySelector(`a[data-id='${btnId}']`);
+  ref.classList.remove('fw-bold');
+  ref.classList.add('fw-normal');
+};
+
+export default (i18n, state) => {
   const input = document.getElementById('url-input');
   const alarm = document.querySelector('.feedback');
   const feedsEl = document.querySelector('.feeds');
   const postsEl = document.querySelector('.posts');
   const feedback = document.querySelector('.feedback');
-  const modalTitle = document.querySelector('.modal-title');
-  const modalDescription = document.querySelector('.modal-body');
 
   const watchedState = onChange(state, (path, current) => {
     switch (path) {
@@ -99,19 +110,12 @@ export default function (i18n, state) {
         feedback.classList.add('text-success');
         input.classList.remove('is-invalid');
         feedsEl.textContent = '';
-        postsEl.textContent = '';  
+        postsEl.textContent = '';
         feedsEl.append(renderBlock(i18n.t('feedsTitle')), renderFeeds(state.feeds));
         postsEl.append(renderBlock(i18n.t('postsTitle')), renderPosts(state.posts, state.opened));
         break;
       case 'opened':
-        const btnId = state.currentPost.getAttribute('data-id');
-        const modalData = state.posts.filter((item) => item.id === btnId);
-        const [{ title, description }] = modalData;
-        modalTitle.textContent = title;
-        modalDescription.textContent = description;
-        const ref = document.querySelector(`a[data-id='${btnId}']`);
-        ref.classList.remove('fw-bold');
-        ref.classList.add('fw-normal');
+        markLinks(state);
         break;
       default:
         throw new Error('Unexpected error');
@@ -119,4 +123,4 @@ export default function (i18n, state) {
   });
 
   return watchedState;
-}
+};
