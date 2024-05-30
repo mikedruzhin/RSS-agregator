@@ -16,7 +16,6 @@ export default async () => {
     feeds: [],
     posts: [],
     currentPost: [],
-    links: [],
     opened: [],
   };
 
@@ -66,38 +65,34 @@ export default async () => {
       const parsedData = parser(response.data.contents);
       const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: site, ...feed }));
       const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
-      state.posts = [...initial, ...state.posts];
+      watchedState.posts = [...initial, ...state.posts];
       state.feeds = [...feedsWithUrl, ...state.feeds];
       return { response: response.status };
     });
 
-  const getUpdateData = (feeds, interval = 5000) => {
+  const getUpdateData = (interval = 5000) => {
     setTimeout(() => {
-      const newPromises = feeds.map((feed) => axios.get(createUrl(feed.link)).then((response) => {
+      const newPromises = state.feeds.map((feed) => axios.get(createUrl(feed.link)).then((response) => {
         const newPosts = parser(response.data.contents).posts;
-        console.log(newPosts)
         const oldTitles = new Set(state.posts.map((post) => post.title));
         const filteredPosts = newPosts.filter(({ title }) => !oldTitles.has(title));
         const newPostsWithId = filteredPosts.map((item) => ({ id: _.uniqueId(), ...item }));
         const updatedPosts = [...newPostsWithId, ...state.posts];
         watchedState.posts = updatedPosts;
-        state.posts = updatedPosts;
       }).catch((error) => errorHandler(error)));
 
       Promise.all(newPromises)
-        .finally(() => getUpdateData(feeds));
+        .finally(() => getUpdateData());
     }, interval);
   };
 
   form.addEventListener('submit', (e) => {
     e.preventDefault();
-
-    makeValidateScheme(state.links).validate(input.value)
+    const links = state.feeds.map(({ link }) => link);
+    makeValidateScheme(links).validate(input.value)
       .then(() => {
         getData(input.value).then(() => {
           state.form.error = i18n.t('success');
-          console.log(state.feeds);
-          state.links.push(input.value);
           watchedState.status = 'loaded';
           watchedState.status = 'feeling';
         }).catch((error) => errorHandler(error));
@@ -113,8 +108,7 @@ export default async () => {
   const action = (event) => {
     state.currentPost = event.target;
     watchedState.opened.push(event.target.dataset.id);
-    state.opened.push(event.target.dataset.id);
   };
   posts.addEventListener('click', action);
-  getUpdateData(state.feeds);
+  getUpdateData();
 };
