@@ -69,12 +69,10 @@ const renderBlock = (title) => {
 const markLinks = (state) => {
   const modalTitle = document.querySelector('.modal-title');
   const modalDescription = document.querySelector('.modal-body');
-  const btnId = state.currentPost.getAttribute('data-id');
-  const modalData = state.posts.filter((item) => item.id === btnId);
-  const [{ title, description }] = modalData;
+  const [{ id, title, description }] = state.currentPost;
   modalTitle.textContent = title;
   modalDescription.textContent = description;
-  const ref = document.querySelector(`a[data-id='${btnId}']`);
+  const ref = document.querySelector(`a[data-id='${id}']`);
   ref.classList.remove('fw-bold');
   ref.classList.add('fw-normal');
 };
