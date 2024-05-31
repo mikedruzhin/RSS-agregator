@@ -19,5 +19,5 @@ export default (data) => {
     return { title, description };
   });
 
-  return { feeds: [{ title: feedTitle, description: feedDescription }], posts: newPosts };
+  return { feeds: { title: feedTitle, description: feedDescription }, posts: newPosts };
 };
