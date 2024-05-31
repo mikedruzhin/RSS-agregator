@@ -63,10 +63,10 @@ export default async () => {
   const getData = (site) => axios.get(createUrl(site))
     .then((response) => {
       const parsedData = parser(response.data.contents);
-      const feedsWithUrl = parsedData.feeds.map((feed) => ({ link: site, ...feed }));
+      const feedsWithUrl = { link: site, ...parsedData.feeds };
       const initial = parsedData.posts.map((item) => ({ id: _.uniqueId(), ...item }));
       watchedState.posts = [...initial, ...state.posts];
-      state.feeds = [...feedsWithUrl, ...state.feeds];
+      state.feeds.unshift(feedsWithUrl);
       return { response: response.status };
     });
 
@@ -80,7 +80,7 @@ export default async () => {
           const newPostsWithId = filteredPosts.map((item) => ({ id: _.uniqueId(), ...item }));
           const updatedPosts = [...newPostsWithId, ...state.posts];
           watchedState.posts = updatedPosts;
-        }).catch((error) => errorHandler(error)));
+        }).catch((error) => console.log(error)));
 
       Promise.all(newPromises)
         .finally(() => getUpdateData());
@@ -93,7 +93,6 @@ export default async () => {
     makeValidateScheme(links).validate(input.value)
       .then(() => {
         getData(input.value).then(() => {
-          state.form.error = i18n.t('success');
           watchedState.status = 'loaded';
           watchedState.status = 'feeling';
         }).catch((error) => errorHandler(error));
@@ -107,7 +106,10 @@ export default async () => {
   });
 
   const action = (event) => {
-    state.currentPost = event.target;
+    if (event.target.dataset) {
+      const currentPostId = state.posts.filter(({ id }) => id === event.target.dataset.id);
+      state.currentPost = currentPostId;
+    }
     watchedState.opened.push(event.target.dataset.id);
   };
   posts.addEventListener('click', action);
